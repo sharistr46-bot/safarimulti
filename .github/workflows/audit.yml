@@ -1,0 +1,68 @@
+name: Build & Security Audit
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  release:
+    types: [created]
+
+jobs:
+  build-and-audit:
+    runs-on: macos-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Theos
+        run: |
+          git clone --recursive https://github.com/theos/theos.git "$HOME/theos"
+          echo "THEOS=$HOME/theos" >> "$GITHUB_ENV"
+          echo "$HOME/theos/bin" >> "$GITHUB_PATH"
+
+      - name: Setup iOS SDK (latest stable)
+        run: |
+          ls /Applications/ | grep Xcode || true
+          sudo xcode-select -p
+
+      - name: Build (FINALPACKAGE=1)
+        run: |
+          make clean
+          make package FINALPACKAGE=1
+
+      - name: Run audit
+        run: |
+          chmod +x ci/audit.sh
+          ./ci/audit.sh ./.theos/obj/release/safarimultid.dylib ./safarimultid.plist
+
+      - name: Generate release artifacts
+        if: github.event_name == 'release'
+        run: |
+          chmod +x ci/release_artifacts.sh
+          VERSION=$(echo "${GITHUB_REF#refs/tags/v}" | head -1)
+          ./ci/release_artifacts.sh "$VERSION"
+
+      - name: Upload artifacts
+        if: github.event_name == 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ github.ref_name }}
+          path: release/
+
+      - name: Attach to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/v*/*.deb
+            release/v*/SHA256.txt
+            release/v*/SHA512.txt
+            release/v*/symbols-undefined.txt
+            release/v*/symbols-defined.txt
+            release/v*/strings.txt
+            release/v*/dylib-deps.txt
+            release/v*/load-commands.txt
+            release/v*/MANIFEST.txt

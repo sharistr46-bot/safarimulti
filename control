@@ -1,0 +1,15 @@
+Package: com.zorrogo.safarimulti
+Name: SafariMulti
+Version: 19.0.0
+Architecture: iphoneos-arm64
+Description: Per-profile WKWebsiteDataStore isolation for Mobile Safari. Single hook, open source, MIT licensed.
+Maintainer: zorrogo team <support@zorrogo.com>
+Author: zorrogo team
+Section: Tweaks
+Depends: mobilesubstrate, firmware (>= 17.0)
+Conflicts: com.zorrovip.zorro-rootless, com.zorrovip.zorro
+Replaces: com.zorrovip.zorro-rootless, com.zorrovip.zorro
+Provides: com.zorrogo.safarimulti
+Tag: compatible_min::ios17.0, role::hacker
+Homepage: https://github.com/zorrogo/safarimulti
+Depiction: https://github.com/zorrogo/safarimulti
