@@ -3,10 +3,14 @@ name: Build & Security Audit
 on:
   push:
     branches: [main, develop]
+    tags: ['v*']
   pull_request:
     branches: [main]
   release:
     types: [created]
+
+permissions:
+  contents: write
 
 jobs:
   build-and-audit:
@@ -66,16 +70,19 @@ jobs:
           ./ci/release_artifacts.sh "$VERSION"
 
       - name: Upload artifacts
-        if: github.event_name == 'release'
+        if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v4
         with:
           name: release-${{ github.ref_name }}
           path: release/
 
-      - name: Attach to release
-        if: github.event_name == 'release'
+      - name: Attach to release (creates release if missing)
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
           files: |
             release/v*/*.deb
             release/v*/SHA256.txt
