@@ -4,15 +4,17 @@
 set -e
 
 VERSION="${1:?usage: release_artifacts.sh <version>}"
-DYLIB="./.theos/obj/release/safarimultid.dylib"
-DEB=$(ls packages/com.zorrogo.safarimulti_${VERSION}_*.deb 2>/dev/null | head -1)
+DYLIB=$(find .theos -name 'safarimultid.dylib' -not -path '*.unsigned*' 2>/dev/null | head -1)
+DEB=$(ls packages/*.deb 2>/dev/null | head -1)
 PLIST="./safarimultid.plist"
 OUT="./release/v${VERSION}"
 
-if [ ! -f "$DYLIB" ]; then
+if [ -z "$DYLIB" ] || [ ! -f "$DYLIB" ]; then
     echo "ERROR: dylib not found. Run 'make package FINALPACKAGE=1' first."
     exit 2
 fi
+echo "Using dylib: $DYLIB"
+echo "Using deb:   ${DEB:-<not found>}"
 
 mkdir -p "$OUT"
 

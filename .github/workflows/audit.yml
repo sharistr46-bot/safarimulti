@@ -38,16 +38,31 @@ jobs:
           make clean
           make package FINALPACKAGE=1
 
+      - name: Locate built dylib
+        id: locate
+        run: |
+          DYLIB=$(find .theos -name 'safarimultid.dylib' -not -path '*.unsigned*' | head -1)
+          if [ -z "$DYLIB" ]; then
+            echo "ERROR: no built dylib found under .theos/"
+            find .theos -type f | head -20
+            exit 1
+          fi
+          echo "dylib=$DYLIB" >> "$GITHUB_OUTPUT"
+          echo "Found dylib: $DYLIB"
+
       - name: Run audit
         run: |
           chmod +x ci/audit.sh
-          ./ci/audit.sh ./.theos/obj/release/safarimultid.dylib ./safarimultid.plist
+          ./ci/audit.sh "${{ steps.locate.outputs.dylib }}" ./safarimultid.plist
 
       - name: Generate release artifacts
-        if: github.event_name == 'release'
+        if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')
         run: |
           chmod +x ci/release_artifacts.sh
-          VERSION=$(echo "${GITHUB_REF#refs/tags/v}" | head -1)
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          # 适配 dylib 实际位置
+          mkdir -p .theos/obj/release
+          cp "${{ steps.locate.outputs.dylib }}" .theos/obj/release/safarimultid.dylib
           ./ci/release_artifacts.sh "$VERSION"
 
       - name: Upload artifacts
