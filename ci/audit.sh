@@ -60,9 +60,12 @@ fi
 echo ""
 echo "[4/8] Domain allowlist..."
 ALLOWED='zorrogo\.com$|apple\.com$|^localhost$|^127\.0\.0\.1$'
+# 排除 reverse-DNS bundle ID 命名（com.x.y / org.x.y / etc）和文件扩展名
+BUNDLE_ID_PREFIX='^(com|org|net|io|cn|uk|jp|de|fr|us|au|ca|cc|tv|me|ai|app|dev)\.'
 DENY=$(strings -a -n 4 "$DYLIB" \
         | grep -oE '[a-z0-9][a-z0-9.-]+\.[a-z]{2,}' \
-        | grep -vE '\.(framework|dylib|app|plist|json|com\.apple)$' \
+        | grep -vE '\.(framework|dylib|app|plist|json)$' \
+        | grep -vE "$BUNDLE_ID_PREFIX" \
         | sort -u \
         | grep -vE "$ALLOWED" || true)
 if [ -n "$DENY" ]; then
