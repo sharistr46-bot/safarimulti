@@ -29,8 +29,11 @@ shasum -a 256 * > SHA256.txt
 shasum -a 512 * > SHA512.txt
 
 # Symbol dumps (transparency)
-nm -u safarimultid.dylib > symbols-undefined.txt || true
-nm safarimultid.dylib 2>/dev/null | grep -E ' [TtSsBbDd] ' > symbols-defined.txt || true
+nm -u safarimultid.dylib > symbols-undefined.txt 2>/dev/null || echo "(no undefined symbols)" > symbols-undefined.txt
+{ nm safarimultid.dylib 2>/dev/null | grep -E ' [TtSsBbDd] '; } > symbols-defined.txt || true
+# Ensure non-empty (GitHub API rejects 0-byte assets)
+[ -s symbols-defined.txt ] || echo "(binary stripped — no defined symbols visible)" > symbols-defined.txt
+[ -s symbols-undefined.txt ] || echo "(no undefined symbols)" > symbols-undefined.txt
 
 # Strings (transparency)
 strings -a -n 6 safarimultid.dylib > strings.txt
