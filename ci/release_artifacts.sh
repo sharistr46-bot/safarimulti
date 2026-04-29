@@ -29,8 +29,8 @@ shasum -a 256 * > SHA256.txt
 shasum -a 512 * > SHA512.txt
 
 # Symbol dumps (transparency)
-nm -u safarimultid.dylib > symbols-undefined.txt
-nm safarimultid.dylib | grep -E ' [TtSsBbDd] ' > symbols-defined.txt
+nm -u safarimultid.dylib > symbols-undefined.txt || true
+nm safarimultid.dylib 2>/dev/null | grep -E ' [TtSsBbDd] ' > symbols-defined.txt || true
 
 # Strings (transparency)
 strings -a -n 6 safarimultid.dylib > strings.txt
