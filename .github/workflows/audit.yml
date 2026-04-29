@@ -17,6 +17,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install build dependencies
+        run: |
+          brew install ldid xz make
+          echo "/opt/homebrew/opt/make/libexec/gnubin" >> "$GITHUB_PATH"
+
       - name: Setup Theos
         run: |
           git clone --recursive https://github.com/theos/theos.git "$HOME/theos"
